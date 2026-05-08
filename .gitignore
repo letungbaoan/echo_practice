@@ -1,0 +1,7 @@
+.env
+*.exe
+*.log
+/tmp/
+build-errors.log
+.idea/
+.vscode/
