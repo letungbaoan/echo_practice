@@ -26,3 +26,13 @@ type UserPayload struct {
 	Bio      string `json:"bio"`
 	Image    string `json:"image"`
 }
+
+type UpdateRequest struct {
+	User struct {
+		Email    string `json:"email"    validate:"omitempty,email"`
+		Username string `json:"username" validate:"omitempty,min=3,max=32"`
+		Password string `json:"password" validate:"omitempty,min=6,max=72"`
+		Bio      string `json:"bio"`
+		Image    string `json:"image"`
+	} `json:"user" validate:"required"`
+}

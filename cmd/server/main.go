@@ -39,6 +39,15 @@ func main() {
 	userSvc := services.NewUserService(userRepo, cfg.JWTSecret)
 	userCtrl := controllers.NewUserController(userSvc)
 
+	followRepo := repositories.NewFollowRepository(db)
+	profileSvc := services.NewProfileService(userRepo, followRepo)
+	profileCtrl := controllers.NewProfileController(profileSvc)
+
+	articleRepo := repositories.NewArticleRepository(db)
+	tagRepo := repositories.NewTagRepository(db)
+	articleSvc := services.NewArticleService(articleRepo, tagRepo, userRepo)
+	articleCtrl := controllers.NewArticleController(articleSvc)
+
 	e := echo.New()
 	e.Validator = utils.NewValidator()
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
@@ -71,7 +80,10 @@ func main() {
 	})
 
 	routes.Register(e, routes.Deps{
-		UserController: userCtrl,
+		UserController:    userCtrl,
+		ProfileController: profileCtrl,
+		ArticleController: articleCtrl,
+		JWTSecret:         cfg.JWTSecret,
 	})
 
 	log.Fatal(e.Start(":" + cfg.Port))

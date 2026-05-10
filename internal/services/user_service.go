@@ -71,6 +71,56 @@ func (s *UserService) Login(req dto.LoginRequest) (*models.User, string, error) 
 	return user, token, nil
 }
 
+func (s *UserService) GetCurrentUser(userID uint) (*models.User, error) {
+	return s.repo.FindByID(userID)
+}
+
+func (s *UserService) UpdateUser(userID uint, req dto.UpdateRequest) (*models.User, error) {
+	user, err := s.repo.FindByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	payload := req.User
+	if payload.Email != "" && payload.Email != user.Email {
+		if existing, _ := s.repo.FindByEmail(payload.Email); existing != nil {
+			return nil, apperrors.ErrEmailTaken
+		}
+		user.Email = payload.Email
+	}
+
+	if payload.Username != "" && payload.Username != user.Username {
+		if existing, _ := s.repo.FindByUsername(payload.Username); existing != nil {
+			return nil, apperrors.ErrUsernameTaken
+		}
+		user.Username = payload.Username
+	}
+
+	if payload.Password != "" {
+		hash, err := utils.HashPassword(payload.Password)
+		if err != nil {
+			return nil, err
+		}
+		user.PasswordHash = hash
+	}
+
+	if payload.Bio != "" || payload.Bio == "" {
+		user.Bio = payload.Bio
+	}
+	if payload.Image != "" || payload.Image == "" {
+		user.Image = payload.Image
+	}
+
+	if err := s.repo.Update(user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (s *UserService) GenerateToken(userID uint) (string, error) {
+	return utils.GenerateToken(userID, s.jwtSecret)
+}
+
 func ToUserResponse(u *models.User, token string) dto.UserResponse {
 	return dto.UserResponse{
 		User: dto.UserPayload{

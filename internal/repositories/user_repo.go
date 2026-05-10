@@ -43,6 +43,10 @@ func (r *UserRepository) FindByID(id uint) (*models.User, error) {
 	return &u, nil
 }
 
+func (r *UserRepository) Update(user *models.User) error {
+	return r.db.Save(user).Error
+}
+
 func IsNotFound(err error) bool {
 	return errors.Is(err, gorm.ErrRecordNotFound)
 }

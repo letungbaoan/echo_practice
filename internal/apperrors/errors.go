@@ -1,6 +1,10 @@
 package apperrors
 
-import "errors"
+import (
+	"errors"
+
+	"gorm.io/gorm"
+)
 
 var (
 	ErrEmailTaken      = errors.New("email already taken")
@@ -12,3 +16,5 @@ var (
 )
 
 func Is(err, target error) bool { return errors.Is(err, target) }
+
+func IsNotFound(err error) bool { return errors.Is(err, gorm.ErrRecordNotFound) }

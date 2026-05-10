@@ -5,6 +5,7 @@ import (
 
 	"echo_practice/internal/apperrors"
 	"echo_practice/internal/dto"
+	"echo_practice/internal/middlewares"
 	"echo_practice/internal/services"
 
 	"github.com/labstack/echo/v4"
@@ -56,6 +57,62 @@ func (h *UserController) Login(c echo.Context) error {
 		if apperrors.Is(err, apperrors.ErrInvalidLogin) {
 			return errorResponse(c, http.StatusUnauthorized, "invalid email or password")
 		}
+		return errorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, services.ToUserResponse(user, token))
+}
+
+func (h *UserController) GetCurrentUser(c echo.Context) error {
+	userID, err := middlewares.GetUserID(c)
+	if err != nil {
+		return errorResponse(c, http.StatusUnauthorized, "unauthorized")
+	}
+
+	user, err := h.svc.GetCurrentUser(userID)
+	if err != nil {
+		if apperrors.IsNotFound(err) {
+			return errorResponse(c, http.StatusNotFound, "user not found")
+		}
+		return errorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	token, err := h.svc.GenerateToken(user.ID)
+	if err != nil {
+		return errorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, services.ToUserResponse(user, token))
+}
+
+func (h *UserController) UpdateUser(c echo.Context) error {
+	userID, err := middlewares.GetUserID(c)
+	if err != nil {
+		return errorResponse(c, http.StatusUnauthorized, "unauthorized")
+	}
+
+	var req dto.UpdateRequest
+	if err := c.Bind(&req); err != nil {
+		return errorResponse(c, http.StatusUnprocessableEntity, "invalid json body")
+	}
+	if err := c.Validate(&req); err != nil {
+		return errorResponse(c, http.StatusUnprocessableEntity, err.Error())
+	}
+
+	user, err := h.svc.UpdateUser(userID, req)
+	if err != nil {
+		switch {
+		case apperrors.Is(err, apperrors.ErrEmailTaken):
+			return errorResponse(c, http.StatusUnprocessableEntity, "email already taken")
+		case apperrors.Is(err, apperrors.ErrUsernameTaken):
+			return errorResponse(c, http.StatusUnprocessableEntity, "username already taken")
+		default:
+			return errorResponse(c, http.StatusInternalServerError, err.Error())
+		}
+	}
+
+	token, err := h.svc.GenerateToken(user.ID)
+	if err != nil {
 		return errorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
