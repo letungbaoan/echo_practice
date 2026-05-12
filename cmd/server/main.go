@@ -45,8 +45,13 @@ func main() {
 
 	articleRepo := repositories.NewArticleRepository(db)
 	tagRepo := repositories.NewTagRepository(db)
-	articleSvc := services.NewArticleService(articleRepo, tagRepo, userRepo)
+	favoriteRepo := repositories.NewFavoriteRepository(db)
+	articleSvc := services.NewArticleService(articleRepo, tagRepo, userRepo, followRepo, favoriteRepo)
 	articleCtrl := controllers.NewArticleController(articleSvc)
+
+	commentRepo := repositories.NewCommentRepository(db)
+	commentSvc := services.NewCommentService(commentRepo, articleRepo, userRepo, followRepo)
+	commentCtrl := controllers.NewCommentController(commentSvc)
 
 	e := echo.New()
 	e.Validator = utils.NewValidator()
@@ -83,6 +88,7 @@ func main() {
 		UserController:    userCtrl,
 		ProfileController: profileCtrl,
 		ArticleController: articleCtrl,
+		CommentController: commentCtrl,
 		JWTSecret:         cfg.JWTSecret,
 	})
 

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"echo_practice/internal/apperrors"
 	"echo_practice/internal/dto"
@@ -91,6 +92,89 @@ func (h *ArticleController) UpdateArticle(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, article)
+}
+
+func (h *ArticleController) ListArticles(c echo.Context) error {
+	filter := services.ListArticlesFilter{
+		Tag:               c.QueryParam("tag"),
+		AuthorUsername:    c.QueryParam("author"),
+		FavoritedUsername: c.QueryParam("favorited"),
+		Limit:             parseIntQuery(c, "limit", 0),
+		Offset:            parseIntQuery(c, "offset", 0),
+	}
+
+	var currentUserID *uint
+	if val := c.Get(middlewares.CtxUserID); val != nil {
+		if uid, ok := val.(uint); ok {
+			currentUserID = &uid
+		}
+	}
+
+	resp, err := h.svc.ListArticles(filter, currentUserID)
+	if err != nil {
+		return errorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (h *ArticleController) FeedArticles(c echo.Context) error {
+	userID, err := middlewares.GetUserID(c)
+	if err != nil {
+		return errorResponse(c, http.StatusUnauthorized, "unauthorized")
+	}
+
+	limit := parseIntQuery(c, "limit", 0)
+	offset := parseIntQuery(c, "offset", 0)
+
+	resp, err := h.svc.FeedArticles(userID, limit, offset)
+	if err != nil {
+		return errorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (h *ArticleController) FavoriteArticle(c echo.Context) error {
+	userID, err := middlewares.GetUserID(c)
+	if err != nil {
+		return errorResponse(c, http.StatusUnauthorized, "unauthorized")
+	}
+
+	resp, err := h.svc.FavoriteArticle(c.Param("slug"), userID)
+	if err != nil {
+		if apperrors.Is(err, apperrors.ErrNotFound) {
+			return errorResponse(c, http.StatusNotFound, "article not found")
+		}
+		return errorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (h *ArticleController) UnfavoriteArticle(c echo.Context) error {
+	userID, err := middlewares.GetUserID(c)
+	if err != nil {
+		return errorResponse(c, http.StatusUnauthorized, "unauthorized")
+	}
+
+	resp, err := h.svc.UnfavoriteArticle(c.Param("slug"), userID)
+	if err != nil {
+		if apperrors.Is(err, apperrors.ErrNotFound) {
+			return errorResponse(c, http.StatusNotFound, "article not found")
+		}
+		return errorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+func parseIntQuery(c echo.Context, key string, def int) int {
+	s := c.QueryParam(key)
+	if s == "" {
+		return def
+	}
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return def
+	}
+	return v
 }
 
 func (h *ArticleController) DeleteArticle(c echo.Context) error {

@@ -11,6 +11,7 @@ type Deps struct {
 	UserController    *controllers.UserController
 	ProfileController *controllers.ProfileController
 	ArticleController *controllers.ArticleController
+	CommentController *controllers.CommentController
 	JWTSecret         string
 }
 
@@ -33,9 +34,20 @@ func Register(e *echo.Echo, d Deps) {
 
 	authArticle := api.Group("", middlewares.JWTAuth(d.JWTSecret))
 	authArticle.POST("/articles", d.ArticleController.CreateArticle)
+	authArticle.GET("/articles/feed", d.ArticleController.FeedArticles)
 	authArticle.PUT("/articles/:slug", d.ArticleController.UpdateArticle)
 	authArticle.DELETE("/articles/:slug", d.ArticleController.DeleteArticle)
+	authArticle.POST("/articles/:slug/favorite", d.ArticleController.FavoriteArticle)
+	authArticle.DELETE("/articles/:slug/favorite", d.ArticleController.UnfavoriteArticle)
 
 	optArticle := api.Group("", middlewares.OptionalJWTAuth(d.JWTSecret))
+	optArticle.GET("/articles", d.ArticleController.ListArticles)
 	optArticle.GET("/articles/:slug", d.ArticleController.GetArticle)
+
+	authComment := api.Group("", middlewares.JWTAuth(d.JWTSecret))
+	authComment.POST("/articles/:slug/comments", d.CommentController.AddComment)
+	authComment.DELETE("/articles/:slug/comments/:id", d.CommentController.DeleteComment)
+
+	optComment := api.Group("", middlewares.OptionalJWTAuth(d.JWTSecret))
+	optComment.GET("/articles/:slug/comments", d.CommentController.ListComments)
 }
