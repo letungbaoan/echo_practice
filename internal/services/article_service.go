@@ -146,7 +146,7 @@ func (s *ArticleService) DeleteArticle(slug string, authorID uint) error {
 		return apperrors.ErrForbidden
 	}
 
-	return s.articleRepo.Delete(slug)
+	return s.articleRepo.Delete(article)
 }
 
 func (s *ArticleService) FavoriteArticle(slug string, currentUserID uint) (*dto.ArticleResponse, error) {

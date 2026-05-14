@@ -31,8 +31,8 @@ func (r *ArticleRepository) Update(article *models.Article) error {
 	return r.db.Save(article).Error
 }
 
-func (r *ArticleRepository) Delete(slug string) error {
-	return r.db.Where("slug = ?", slug).Delete(&models.Article{}).Error
+func (r *ArticleRepository) Delete(article *models.Article) error {
+	return r.db.Select("Tags").Delete(article).Error
 }
 
 func (r *ArticleRepository) FindByID(id uint) (*models.Article, error) {

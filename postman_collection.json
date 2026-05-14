@@ -1,0 +1,428 @@
+{
+  "info": {
+    "name": "Echo Practice (RealWorld API)",
+    "description": "Collection cho project echo_practice — RealWorld API spec implement bằng Echo + GORM + Postgres.\n\nThứ tự khuyến nghị: Register Alice → Register Bob → Login → Create Article → Comment → Favorite → Follow → Feed.\n\nDùng environment `Echo Practice Local` (port 8080).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8080/api"},
+    {"key": "aliceUsername", "value": "alice"},
+    {"key": "bobUsername", "value": "bob"},
+    {"key": "token", "value": ""},
+    {"key": "aliceToken", "value": ""},
+    {"key": "bobToken", "value": ""},
+    {"key": "slug", "value": ""},
+    {"key": "commentId", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (Alice)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.user && json.user.token) {",
+                  "  pm.collectionVariables.set('aliceToken', json.user.token);",
+                  "  pm.collectionVariables.set('token', json.user.token);",
+                  "  pm.collectionVariables.set('aliceUsername', json.user.username);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"username\": \"alice\",\n    \"email\": \"alice@example.com\",\n    \"password\": \"password123\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Register (Bob)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.user && json.user.token) {",
+                  "  pm.collectionVariables.set('bobToken', json.user.token);",
+                  "  pm.collectionVariables.set('bobUsername', json.user.username);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"username\": \"bob\",\n    \"email\": \"bob@example.com\",\n    \"password\": \"password123\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (Alice)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.user && json.user.token) {",
+                  "  pm.collectionVariables.set('aliceToken', json.user.token);",
+                  "  pm.collectionVariables.set('token', json.user.token);",
+                  "  pm.collectionVariables.set('aliceUsername', json.user.username);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{baseUrl}}/users/login", "host": ["{{baseUrl}}"], "path": ["users", "login"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"email\": \"alice@example.com\",\n    \"password\": \"password123\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (Bob)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.user && json.user.token) {",
+                  "  pm.collectionVariables.set('bobToken', json.user.token);",
+                  "  pm.collectionVariables.set('bobUsername', json.user.username);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{baseUrl}}/users/login", "host": ["{{baseUrl}}"], "path": ["users", "login"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"email\": \"bob@example.com\",\n    \"password\": \"password123\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Token {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/user", "host": ["{{baseUrl}}"], "path": ["user"]}
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": {"raw": "{{baseUrl}}/user", "host": ["{{baseUrl}}"], "path": ["user"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"bio\": \"I write Go\",\n    \"image\": \"https://example.com/alice.png\"\n  }\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profiles",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Token {{token}}", "description": "optional"}],
+            "url": {"raw": "{{baseUrl}}/profiles/{{aliceUsername}}", "host": ["{{baseUrl}}"], "path": ["profiles", "{{aliceUsername}}"]}
+          }
+        },
+        {
+          "name": "Follow (Bob → Alice)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Token {{bobToken}}"}],
+            "url": {"raw": "{{baseUrl}}/profiles/{{aliceUsername}}/follow", "host": ["{{baseUrl}}"], "path": ["profiles", "{{aliceUsername}}", "follow"]}
+          }
+        },
+        {
+          "name": "Unfollow (Bob → Alice)",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Token {{bobToken}}"}],
+            "url": {"raw": "{{baseUrl}}/profiles/{{aliceUsername}}/follow", "host": ["{{baseUrl}}"], "path": ["profiles", "{{aliceUsername}}", "follow"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Articles",
+      "item": [
+        {
+          "name": "Create Article (Alice)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.article && json.article.slug) {",
+                  "  pm.collectionVariables.set('slug', json.article.slug);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Token {{aliceToken}}"}
+            ],
+            "url": {"raw": "{{baseUrl}}/articles", "host": ["{{baseUrl}}"], "path": ["articles"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"article\": {\n    \"title\": \"How to Go\",\n    \"description\": \"Intro to Go\",\n    \"body\": \"Go is a great language.\",\n    \"tagList\": [\"go\", \"tutorial\"]\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Article",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Token {{token}}", "description": "optional"}],
+            "url": {"raw": "{{baseUrl}}/articles/{{slug}}", "host": ["{{baseUrl}}"], "path": ["articles", "{{slug}}"]}
+          }
+        },
+        {
+          "name": "Update Article (Alice)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.article && json.article.slug) {",
+                  "  pm.collectionVariables.set('slug', json.article.slug);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Token {{aliceToken}}"}
+            ],
+            "url": {"raw": "{{baseUrl}}/articles/{{slug}}", "host": ["{{baseUrl}}"], "path": ["articles", "{{slug}}"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"article\": {\n    \"title\": \"How to Go v2\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Article (Alice)",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Token {{aliceToken}}"}],
+            "url": {"raw": "{{baseUrl}}/articles/{{slug}}", "host": ["{{baseUrl}}"], "path": ["articles", "{{slug}}"]}
+          }
+        },
+        {
+          "name": "List Articles (no filter)",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Token {{token}}", "description": "optional"}],
+            "url": {"raw": "{{baseUrl}}/articles?limit=20&offset=0", "host": ["{{baseUrl}}"], "path": ["articles"], "query": [
+              {"key": "limit", "value": "20"},
+              {"key": "offset", "value": "0"}
+            ]}
+          }
+        },
+        {
+          "name": "List Articles by tag",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/articles?tag=go", "host": ["{{baseUrl}}"], "path": ["articles"], "query": [
+              {"key": "tag", "value": "go"}
+            ]}
+          }
+        },
+        {
+          "name": "List Articles by author",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/articles?author={{aliceUsername}}", "host": ["{{baseUrl}}"], "path": ["articles"], "query": [
+              {"key": "author", "value": "{{aliceUsername}}"}
+            ]}
+          }
+        },
+        {
+          "name": "List Articles favorited by user",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/articles?favorited={{bobUsername}}", "host": ["{{baseUrl}}"], "path": ["articles"], "query": [
+              {"key": "favorited", "value": "{{bobUsername}}"}
+            ]}
+          }
+        },
+        {
+          "name": "Feed (auth required)",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Token {{bobToken}}"}],
+            "url": {"raw": "{{baseUrl}}/articles/feed?limit=20&offset=0", "host": ["{{baseUrl}}"], "path": ["articles", "feed"], "query": [
+              {"key": "limit", "value": "20"},
+              {"key": "offset", "value": "0"}
+            ]}
+          }
+        },
+        {
+          "name": "Favorite Article (Bob)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Token {{bobToken}}"}],
+            "url": {"raw": "{{baseUrl}}/articles/{{slug}}/favorite", "host": ["{{baseUrl}}"], "path": ["articles", "{{slug}}", "favorite"]}
+          }
+        },
+        {
+          "name": "Unfavorite Article (Bob)",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Token {{bobToken}}"}],
+            "url": {"raw": "{{baseUrl}}/articles/{{slug}}/favorite", "host": ["{{baseUrl}}"], "path": ["articles", "{{slug}}", "favorite"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "Add Comment (Bob)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.comment && json.comment.id) {",
+                  "  pm.collectionVariables.set('commentId', json.comment.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Token {{bobToken}}"}
+            ],
+            "url": {"raw": "{{baseUrl}}/articles/{{slug}}/comments", "host": ["{{baseUrl}}"], "path": ["articles", "{{slug}}", "comments"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": {\n    \"body\": \"Great article!\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "List Comments",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Token {{token}}", "description": "optional"}],
+            "url": {"raw": "{{baseUrl}}/articles/{{slug}}/comments", "host": ["{{baseUrl}}"], "path": ["articles", "{{slug}}", "comments"]}
+          }
+        },
+        {
+          "name": "Delete Comment (Bob)",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Token {{bobToken}}"}],
+            "url": {"raw": "{{baseUrl}}/articles/{{slug}}/comments/{{commentId}}", "host": ["{{baseUrl}}"], "path": ["articles", "{{slug}}", "comments", "{{commentId}}"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tags",
+      "item": [
+        {
+          "name": "List Tags",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/tags", "host": ["{{baseUrl}}"], "path": ["tags"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error cases",
+      "item": [
+        {
+          "name": "401 — no token on protected endpoint",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/user", "host": ["{{baseUrl}}"], "path": ["user"]}
+          }
+        },
+        {
+          "name": "403 — non-owner tries to delete article",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Token {{bobToken}}"}],
+            "url": {"raw": "{{baseUrl}}/articles/{{slug}}", "host": ["{{baseUrl}}"], "path": ["articles", "{{slug}}"]}
+          }
+        },
+        {
+          "name": "404 — article not found",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/articles/does-not-exist", "host": ["{{baseUrl}}"], "path": ["articles", "does-not-exist"]}
+          }
+        },
+        {
+          "name": "422 — invalid body (missing field)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"]},
+            "body": {"mode": "raw", "raw": "{\n  \"user\": {\n    \"email\": \"\"\n  }\n}"}
+          }
+        }
+      ]
+    }
+  ]
+}
