@@ -35,3 +35,13 @@ func (r *TagRepository) FindByNames(names []string) ([]models.Tag, error) {
 	err := r.db.Where("name IN ?", names).Find(&tags).Error
 	return tags, err
 }
+
+func (r *TagRepository) ListUsed() ([]string, error) {
+	var names []string
+	err := r.db.Model(&models.Tag{}).
+		Distinct("tags.name").
+		Joins("JOIN article_tags ON article_tags.tag_id = tags.id").
+		Order("tags.name ASC").
+		Pluck("name", &names).Error
+	return names, err
+}

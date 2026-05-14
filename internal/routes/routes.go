@@ -12,6 +12,7 @@ type Deps struct {
 	ProfileController *controllers.ProfileController
 	ArticleController *controllers.ArticleController
 	CommentController *controllers.CommentController
+	TagController     *controllers.TagController
 	JWTSecret         string
 }
 
@@ -50,4 +51,6 @@ func Register(e *echo.Echo, d Deps) {
 
 	optComment := api.Group("", middlewares.OptionalJWTAuth(d.JWTSecret))
 	optComment.GET("/articles/:slug/comments", d.CommentController.ListComments)
+
+	api.GET("/tags", d.TagController.ListTags)
 }

@@ -9,6 +9,7 @@ import (
 	"echo_practice/internal/config"
 	"echo_practice/internal/controllers"
 	"echo_practice/internal/database"
+	"echo_practice/internal/middlewares"
 	"echo_practice/internal/repositories"
 	"echo_practice/internal/routes"
 	"echo_practice/internal/services"
@@ -53,8 +54,12 @@ func main() {
 	commentSvc := services.NewCommentService(commentRepo, articleRepo, userRepo, followRepo)
 	commentCtrl := controllers.NewCommentController(commentSvc)
 
+	tagSvc := services.NewTagService(tagRepo)
+	tagCtrl := controllers.NewTagController(tagSvc)
+
 	e := echo.New()
 	e.Validator = utils.NewValidator()
+	e.HTTPErrorHandler = middlewares.ErrorHandler
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogStatus:   true,
 		LogURI:      true,
@@ -89,6 +94,7 @@ func main() {
 		ProfileController: profileCtrl,
 		ArticleController: articleCtrl,
 		CommentController: commentCtrl,
+		TagController:     tagCtrl,
 		JWTSecret:         cfg.JWTSecret,
 	})
 

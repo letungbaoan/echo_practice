@@ -72,12 +72,22 @@ func (s *UserService) Login(req dto.LoginRequest) (*models.User, string, error) 
 }
 
 func (s *UserService) GetCurrentUser(userID uint) (*models.User, error) {
-	return s.repo.FindByID(userID)
+	user, err := s.repo.FindByID(userID)
+	if err != nil {
+		if repositories.IsNotFound(err) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, err
+	}
+	return user, nil
 }
 
 func (s *UserService) UpdateUser(userID uint, req dto.UpdateRequest) (*models.User, error) {
 	user, err := s.repo.FindByID(userID)
 	if err != nil {
+		if repositories.IsNotFound(err) {
+			return nil, apperrors.ErrNotFound
+		}
 		return nil, err
 	}
 
