@@ -2,9 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"math/rand"
 	"regexp"
 	"strings"
-	"time"
 )
 
 func GenerateSlug(title string) string {
@@ -12,6 +12,6 @@ func GenerateSlug(title string) string {
 	reg := regexp.MustCompile("[^a-z0-9]+")
 	slug := reg.ReplaceAllString(lower, "-")
 	slug = strings.Trim(slug, "-")
-	suffix := fmt.Sprintf("-%d", time.Now().UnixNano()%100000)
+	suffix := fmt.Sprintf("-%d", rand.Intn(100000))
 	return slug + suffix
 }

@@ -30,7 +30,7 @@ func (r *CommentRepository) ListByArticle(articleID uint) ([]models.Comment, err
 	var comments []models.Comment
 	err := r.db.Preload("Author").
 		Where("article_id = ?", articleID).
-		Order("created_at DESC").
+		Order("id DESC").
 		Find(&comments).Error
 	return comments, err
 }
